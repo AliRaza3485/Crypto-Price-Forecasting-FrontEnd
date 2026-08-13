@@ -5,12 +5,14 @@ import type {
   ApiError,
   DriftResponse,
   HealthResponse,
+  HistoryResponse,
   LiveForecastResponse,
 } from "@/lib/types";
 import StatusPill from "./StatusPill";
 import ModelInfo from "./ModelInfo";
 import ForecastCard from "./ForecastCard";
 import DriftPanel from "./DriftPanel";
+import HistoryPanel from "./HistoryPanel";
 import Footer from "./Footer";
 
 const POLL_INTERVAL_MS = 60_000;
@@ -41,6 +43,7 @@ export default function Dashboard() {
   const [forecast, setForecast] = useState<FetchState<LiveForecastResponse>>(initialState);
   const [drift, setDrift] = useState<FetchState<DriftResponse>>(initialState);
   const [driftUnavailable, setDriftUnavailable] = useState(false);
+  const [history, setHistory] = useState<FetchState<HistoryResponse>>(initialState);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const isFirstLoad = useRef(true);
@@ -52,16 +55,18 @@ export default function Dashboard() {
       // only flip `loading` back on for the very first fetch.
     }
 
-    const [healthRes, forecastRes, driftRes] = await Promise.all([
+    const [healthRes, forecastRes, driftRes, historyRes] = await Promise.all([
       fetch("/api/health", { cache: "no-store" }),
       fetch("/api/predict-live", { cache: "no-store" }),
       fetch("/api/drift", { cache: "no-store" }),
+      fetch("/api/history", { cache: "no-store" }),
     ]);
 
-    const [healthJson, forecastJson, driftJson] = await Promise.all([
+    const [healthJson, forecastJson, driftJson, historyJson] = await Promise.all([
       readJson<HealthResponse>(healthRes),
       readJson<LiveForecastResponse>(forecastRes),
       readJson<DriftResponse>(driftRes),
+      readJson<HistoryResponse>(historyRes),
     ]);
 
     setHealth({
@@ -87,6 +92,12 @@ export default function Dashboard() {
         error: driftJson.ok ? null : (driftJson.body as ApiError).error,
       });
     }
+
+    setHistory({
+      data: historyJson.ok ? (historyJson.body as HistoryResponse) : null,
+      loading: false,
+      error: historyJson.ok ? null : (historyJson.body as ApiError).error,
+    });
 
     setLastUpdated(new Date());
     setRefreshing(false);
@@ -149,6 +160,11 @@ export default function Dashboard() {
               unavailable={driftUnavailable}
               error={drift.error}
             />
+          </div>
+
+          {/* History */}
+          <div className="mt-6">
+            <HistoryPanel data={history.data} loading={history.loading} error={history.error} />
           </div>
         </div>
       </main>
