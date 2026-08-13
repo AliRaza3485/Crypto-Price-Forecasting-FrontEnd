@@ -5,7 +5,7 @@ import { formatClockTime } from "@/lib/format";
 const BACKEND_REPO_URL = "https://github.com/AliRaza3485/Crypto-Price-Forecasting-MLops";
 // TODO: confirm the actual frontend repo URL — this is a placeholder and
 // may not match the real repo name/owner. Update once confirmed.
-const FRONTEND_REPO_URL = "https://github.com/AliRaza3485/Crypto-Forecasting-Frontend";
+const FRONTEND_REPO_URL = "https://github.com/AliRaza3485/Crypto-Price-Forecasting-FrontEnd";
 
 interface FooterProps {
   lastUpdated: Date | null;
