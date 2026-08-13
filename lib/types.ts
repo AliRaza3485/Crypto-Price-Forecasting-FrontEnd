@@ -39,6 +39,24 @@ export interface DriftResponse {
   features: DriftFeature[];
 }
 
+/** One logged prediction row. GET /predict/history */
+export interface HistoryEntry {
+  as_of_time: string; // ISO timestamp
+  current_price: number;
+  predicted_return: number;
+  predicted_price: number;
+  predicted_for_time: string; // ISO timestamp
+  actual_price: number | null; // null until predicted_for_time has passed
+  error: number | null; // actual_price - predicted_price, null while pending
+}
+
+/** GET /predict/history */
+export interface HistoryResponse {
+  hours: number;
+  count: number;
+  entries: HistoryEntry[];
+}
+
 /** Uniform error shape returned by our own /api/* proxy routes. */
 export interface ApiError {
   error: string;
