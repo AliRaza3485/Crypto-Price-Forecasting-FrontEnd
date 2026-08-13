@@ -135,7 +135,7 @@ export default function HistoryPanel({ data, loading, error }: HistoryPanelProps
               dataKey="predicted"
               stroke="var(--primary)"
               strokeWidth={2}
-              dot={false}
+              dot={{ r: 3, fill: "var(--primary)" }}
               connectNulls
             />
             <Line
