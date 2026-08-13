@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* Design tokens — deep navy dark theme for the BTC Forecast Monitor. */
+/* Always dark.                                                       */
+/* ------------------------------------------------------------------ */
+:root {
+  --background: #0a0e1a; /* deep navy / near-black */
+  --surface: #121829; /* soft dark card fill */
+  --surface-muted: #171e33; /* slightly lighter panel fill */
+  --border: rgba(255, 255, 255, 0.1); /* subtle borders — border-white/10 */
+  --foreground: #e6e9f2; /* near-white text */
+  --muted-foreground: #9aa3b8; /* muted gray */
+  --subtle-foreground: #6b7488; /* subtler gray */
+
+  --primary: #4d7fff; /* blue accent */
+  --primary-hover: #3d6ef0; /* darker blue on hover */
+  --primary-foreground: #ffffff;
+  --accent: #6b9bff; /* lighter blue accent */
+  --ring: #4d7fff;
+
+  --danger: #f87171;
+  --danger-surface: rgba(220, 38, 38, 0.12);
+  --danger-border: rgba(248, 113, 113, 0.35);
+
+  --success: #34d399;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-ring: var(--ring);
+  --color-danger: var(--danger);
+  --color-danger-surface: var(--danger-surface);
+  --color-danger-border: var(--danger-border);
+  --color-success: var(--success);
+
+  --font-sans: var(--font-inter);
+
+  --animate-fade-in-up: fade-in-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/* Keyframes                                                          */
+/* ------------------------------------------------------------------ */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
