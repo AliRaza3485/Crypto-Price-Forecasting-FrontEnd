@@ -39,3 +39,15 @@ export function DriftPanelSkeleton() {
     </div>
   );
 }
+
+export function HistoryPanelSkeleton() {
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-6">
+      <div className="flex items-center justify-between">
+        <SkeletonLine className="h-4 w-40" />
+        <SkeletonLine className="h-3 w-24" />
+      </div>
+      <SkeletonLine className="mt-6 h-48 w-full rounded-xl" />
+    </div>
+  );
+}
