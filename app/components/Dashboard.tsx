@@ -7,6 +7,7 @@ import type {
   HealthResponse,
   HistoryResponse,
   LiveForecastResponse,
+  ModelInfoResponse,
 } from "@/lib/types";
 import StatusPill from "./StatusPill";
 import ModelInfo from "./ModelInfo";
@@ -40,6 +41,7 @@ async function readJson<T>(res: Response): Promise<{ ok: boolean; status: number
 
 export default function Dashboard() {
   const [health, setHealth] = useState<FetchState<HealthResponse>>(initialState);
+  const [modelInfo, setModelInfo] = useState<FetchState<ModelInfoResponse>>(initialState);
   const [forecast, setForecast] = useState<FetchState<LiveForecastResponse>>(initialState);
   const [drift, setDrift] = useState<FetchState<DriftResponse>>(initialState);
   const [driftUnavailable, setDriftUnavailable] = useState(false);
@@ -55,15 +57,17 @@ export default function Dashboard() {
       // only flip `loading` back on for the very first fetch.
     }
 
-    const [healthRes, forecastRes, driftRes, historyRes] = await Promise.all([
+    const [healthRes, modelInfoRes, forecastRes, driftRes, historyRes] = await Promise.all([
       fetch("/api/health", { cache: "no-store" }),
+      fetch("/api/model-info", { cache: "no-store" }),
       fetch("/api/predict-live", { cache: "no-store" }),
       fetch("/api/drift", { cache: "no-store" }),
       fetch("/api/history", { cache: "no-store" }),
     ]);
 
-    const [healthJson, forecastJson, driftJson, historyJson] = await Promise.all([
+    const [healthJson, modelInfoJson, forecastJson, driftJson, historyJson] = await Promise.all([
       readJson<HealthResponse>(healthRes),
+      readJson<ModelInfoResponse>(modelInfoRes),
       readJson<LiveForecastResponse>(forecastRes),
       readJson<DriftResponse>(driftRes),
       readJson<HistoryResponse>(historyRes),
@@ -73,6 +77,12 @@ export default function Dashboard() {
       data: healthJson.ok ? (healthJson.body as HealthResponse) : null,
       loading: false,
       error: healthJson.ok ? null : (healthJson.body as ApiError).error,
+    });
+
+    setModelInfo({
+      data: modelInfoJson.ok ? (modelInfoJson.body as ModelInfoResponse) : null,
+      loading: false,
+      error: modelInfoJson.ok ? null : (modelInfoJson.body as ApiError).error,
     });
 
     setForecast({
@@ -127,7 +137,7 @@ export default function Dashboard() {
                 MLOps engineering showcase — not a trading system.
               </p>
               <div className="mt-2">
-                <ModelInfo health={health.data} />
+                <ModelInfo data={modelInfo.data} />
               </div>
             </div>
 

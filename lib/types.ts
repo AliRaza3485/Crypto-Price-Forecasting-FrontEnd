@@ -5,11 +5,32 @@
 export interface HealthResponse {
   status: string; // "ok" when healthy
   model_available: boolean;
-  // Not currently returned by the backend. Optional + forward-compatible:
-  // the UI renders these the moment the backend starts sending them, and
-  // degrades gracefully (omits / shows a muted note) while they're absent.
-  model_version?: string;
-  last_retrained?: string; // ISO timestamp, if/when the backend adds it
+}
+
+/** Test-set metrics logged at train/promote time (see backend evaluate()). */
+export interface ModelMetrics {
+  rmse: number;
+  mae: number;
+  r2: number;
+  directional_acc: number;
+}
+
+/**
+ * GET /model/info
+ * Metadata about the currently-served model version, read from a sidecar
+ * JSON the backend writes at train/promote time. `available: false` means
+ * no metadata exists yet (e.g. before the first retrain since this endpoint
+ * shipped) — not an error, just "not yet reported".
+ */
+export interface ModelInfoResponse {
+  available: boolean;
+  algorithm: string | null;
+  trained_at: string | null; // ISO timestamp
+  source: "initial_training" | "retrain_promoted" | null;
+  metrics: ModelMetrics | null;
+  n_features: number | null;
+  mlflow_run_id: string | null;
+  registered_model_name: string | null;
 }
 
 /** GET /predict/live */

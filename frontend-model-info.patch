@@ -1,0 +1,104 @@
+diff --git a/app/components/Dashboard.tsx b/app/components/Dashboard.tsx
+index 1674ffc..7c563d8 100644
+--- a/app/components/Dashboard.tsx
++++ b/app/components/Dashboard.tsx
+@@ -7,6 +7,7 @@ import type {
+   HealthResponse,
+   HistoryResponse,
+   LiveForecastResponse,
++  ModelInfoResponse,
+ } from "@/lib/types";
+ import StatusPill from "./StatusPill";
+ import ModelInfo from "./ModelInfo";
+@@ -40,6 +41,7 @@ async function readJson<T>(res: Response): Promise<{ ok: boolean; status: number
+ 
+ export default function Dashboard() {
+   const [health, setHealth] = useState<FetchState<HealthResponse>>(initialState);
++  const [modelInfo, setModelInfo] = useState<FetchState<ModelInfoResponse>>(initialState);
+   const [forecast, setForecast] = useState<FetchState<LiveForecastResponse>>(initialState);
+   const [drift, setDrift] = useState<FetchState<DriftResponse>>(initialState);
+   const [driftUnavailable, setDriftUnavailable] = useState(false);
+@@ -55,15 +57,17 @@ export default function Dashboard() {
+       // only flip `loading` back on for the very first fetch.
+     }
+ 
+-    const [healthRes, forecastRes, driftRes, historyRes] = await Promise.all([
++    const [healthRes, modelInfoRes, forecastRes, driftRes, historyRes] = await Promise.all([
+       fetch("/api/health", { cache: "no-store" }),
++      fetch("/api/model-info", { cache: "no-store" }),
+       fetch("/api/predict-live", { cache: "no-store" }),
+       fetch("/api/drift", { cache: "no-store" }),
+       fetch("/api/history", { cache: "no-store" }),
+     ]);
+ 
+-    const [healthJson, forecastJson, driftJson, historyJson] = await Promise.all([
++    const [healthJson, modelInfoJson, forecastJson, driftJson, historyJson] = await Promise.all([
+       readJson<HealthResponse>(healthRes),
++      readJson<ModelInfoResponse>(modelInfoRes),
+       readJson<LiveForecastResponse>(forecastRes),
+       readJson<DriftResponse>(driftRes),
+       readJson<HistoryResponse>(historyRes),
+@@ -75,6 +79,12 @@ export default function Dashboard() {
+       error: healthJson.ok ? null : (healthJson.body as ApiError).error,
+     });
+ 
++    setModelInfo({
++      data: modelInfoJson.ok ? (modelInfoJson.body as ModelInfoResponse) : null,
++      loading: false,
++      error: modelInfoJson.ok ? null : (modelInfoJson.body as ApiError).error,
++    });
++
+     setForecast({
+       data: forecastJson.ok ? (forecastJson.body as LiveForecastResponse) : null,
+       loading: false,
+@@ -127,7 +137,7 @@ export default function Dashboard() {
+                 MLOps engineering showcase — not a trading system.
+               </p>
+               <div className="mt-2">
+-                <ModelInfo health={health.data} />
++                <ModelInfo data={modelInfo.data} />
+               </div>
+             </div>
+ 
+diff --git a/lib/types.ts b/lib/types.ts
+index 8464d49..c7cba05 100644
+--- a/lib/types.ts
++++ b/lib/types.ts
+@@ -5,11 +5,32 @@
+ export interface HealthResponse {
+   status: string; // "ok" when healthy
+   model_available: boolean;
+-  // Not currently returned by the backend. Optional + forward-compatible:
+-  // the UI renders these the moment the backend starts sending them, and
+-  // degrades gracefully (omits / shows a muted note) while they're absent.
+-  model_version?: string;
+-  last_retrained?: string; // ISO timestamp, if/when the backend adds it
++}
++
++/** Test-set metrics logged at train/promote time (see backend evaluate()). */
++export interface ModelMetrics {
++  rmse: number;
++  mae: number;
++  r2: number;
++  directional_acc: number;
++}
++
++/**
++ * GET /model/info
++ * Metadata about the currently-served model version, read from a sidecar
++ * JSON the backend writes at train/promote time. `available: false` means
++ * no metadata exists yet (e.g. before the first retrain since this endpoint
++ * shipped) — not an error, just "not yet reported".
++ */
++export interface ModelInfoResponse {
++  available: boolean;
++  algorithm: string | null;
++  trained_at: string | null; // ISO timestamp
++  source: "initial_training" | "retrain_promoted" | null;
++  metrics: ModelMetrics | null;
++  n_features: number | null;
++  mlflow_run_id: string | null;
++  registered_model_name: string | null;
+ }
+ 
+ /** GET /predict/live */

@@ -1,24 +1,25 @@
 "use client";
 
-import type { HealthResponse } from "@/lib/types";
+import type { ModelInfoResponse } from "@/lib/types";
 import { formatDateTime } from "@/lib/format";
 
 interface ModelInfoProps {
-  health: HealthResponse | null;
+  data: ModelInfoResponse | null;
 }
 
+const SOURCE_LABEL: Record<string, string> = {
+  initial_training: "initial training",
+  retrain_promoted: "auto-retrained",
+};
+
 /**
- * Optional "model version / last retrained" line. The backend doesn't
- * expose this yet — `model_version` / `last_retrained` are optional fields
- * on HealthResponse for forward-compatibility. Until the backend sends
- * them, this renders a small muted note instead of fabricating a value.
+ * "Model version / last retrained" line, sourced from GET /model/info — a
+ * sidecar JSON the backend writes at train/promote time. Renders a small
+ * muted note until the backend has metadata to report (e.g. before the
+ * first retrain since this endpoint shipped), instead of fabricating one.
  */
-export default function ModelInfo({ health }: ModelInfoProps) {
-  if (!health) return null;
-
-  const { model_version, last_retrained } = health;
-
-  if (!model_version && !last_retrained) {
+export default function ModelInfo({ data }: ModelInfoProps) {
+  if (!data || !data.available) {
     return (
       <p className="text-xs text-subtle-foreground">
         Model info: not yet reported by backend
@@ -26,11 +27,20 @@ export default function ModelInfo({ health }: ModelInfoProps) {
     );
   }
 
+  const { algorithm, trained_at, source, metrics } = data;
+  const sourceLabel = source ? SOURCE_LABEL[source] ?? source : null;
+
   return (
     <p className="text-xs text-subtle-foreground">
-      {model_version && <span>Model {model_version}</span>}
-      {model_version && last_retrained && <span> · </span>}
-      {last_retrained && <span>Last retrained {formatDateTime(last_retrained)}</span>}
+      {algorithm && <span className="capitalize">{algorithm.replace(/_/g, " ")}</span>}
+      {algorithm && trained_at && <span> · </span>}
+      {trained_at && <span>trained {formatDateTime(trained_at)}</span>}
+      {sourceLabel && <span> ({sourceLabel})</span>}
+      {metrics && (
+        <span className="ml-1 text-subtle-foreground/80">
+          · RMSE {metrics.rmse.toFixed(6)}
+        </span>
+      )}
     </p>
   );
 }
